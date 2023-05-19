@@ -1,19 +1,51 @@
 import os
+import time
+
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, declarative_base
 from starlette import status
 from starlette.responses import JSONResponse
-
 from routers.global_data import router as global_data_router
 from routers.authentication import router as authentication_data_router
+from fastapi import Depends
+from sqlalchemy import Column, Integer, String, DateTime, func
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
+
+# class User(Base):
+#     __tablename__ = "users"
+#
+#     id = Column(Integer, primary_key=True, index=True)
+#     user_name = Column(String, nullable=False)
+#     email = Column(String, nullable=False)
+#     created_at = Column(DateTime, nullable=False, default=func.now())
+#     updated_at = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
+#
+# # Load environment variables from .env file
+# load_dotenv(".env")
+#
+# engine = create_engine(os.environ.get("POSTGRES_URL"))
+# SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# Base = declarative_base()
+# Base.metadata.create_all(bind=engine)
+#
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
 
 app = FastAPI()
 app.include_router(global_data_router)
 app.include_router(authentication_data_router)
-
-load_dotenv(".env")  # Load environment variables from .env file
 
 
 class CustomError(BaseModel):
@@ -36,10 +68,11 @@ async def custom_exception_handler(request, exc):
     )
 
     error_response = {
-        "data":{},
-        "error":error_response.dict()
+        "data": {},
+        "error": error_response.dict()
     }
     return JSONResponse(status_code=exc.response_code, content=error_response)
+
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request, exc):
@@ -58,5 +91,9 @@ async def validation_exception_handler(request, exc):
 
 @app.get("/greet")
 async def root():
-    raise CustomException(400,"what",401)
-    return {"message": "All good", "envFileTest": os.environ.get("postGresPassword")}
+    return {"message": "All good", "envFileTest": os.environ.get("POSTGRES_URL")}
+
+@app.get("/error-test")
+async def root():
+    raise CustomException(1,"custopmErr-r",404)
+    return {"message": "All good", "envFileTest": os.environ.get("POSTGRES_URL")}

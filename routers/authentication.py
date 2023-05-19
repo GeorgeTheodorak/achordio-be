@@ -12,9 +12,9 @@ from response_models import auth_model
 router = APIRouter(prefix="/v1/api")
 
 
-@router.post('/user-register', summary="Create new user", response_model=auth_model.authRequest)
+@router.post('/user-register', summary="Create new models.py", response_model=auth_model.authRequest)
 async def create_user(form_data: auth_model.authRequest):
-    # querying database to check if user already exist
+    # querying database to check if models.py already exist
 
     user = None
     if user is not None:
@@ -32,20 +32,20 @@ async def create_user(form_data: auth_model.authRequest):
     return user
 
 
-@router.post('/login', summary="Create access and refresh tokens for user", response_model=auth_model.authResponse)
+@router.post('/login', summary="Create access and refresh tokens for models.py", response_model=auth_model.authResponse)
 async def login(form_data: auth_model.authRequest):
-    # user = user.mial
+    # models.py = models.py.mial
 
     # if form_data.e !=  mail
 
-    # user = db.get(form_data.username, None)
-    # if user is None:
+    # models.py = db.get(form_data.username, None)
+    # if models.py is None:
     #     raise HTTPException(
     #         status_code=status.HTTP_400_BAD_REQUEST,
     #         detail="Incorrect email or password"
     #     )
 
-    # hashed_pass = user['password']
+    # hashed_pass = models.py['password']
     # if not verify_password(form_data.password, hashed_pass):
     #     raise HTTPException(
     #         status_code=status.HTTP_400_BAD_REQUEST,
