@@ -1,0 +1,60 @@
+{
+    "data": {
+    "song": {
+      "title": "Πόρτο Ρίκο",
+      "id": 1,
+      "composers": [
+        {
+          "name": "Μεσημέρης Σταμάτης",
+          "id": 1
+        }
+      ],
+      "artists": [
+        {
+          "id": 1,
+          "name": "Βασίλης Παπακωνσταντίνου"
+        }
+      ],
+      "lyricists": [
+        {
+          "id": 1,
+          "name": "Αλκαίος Άλκης"
+        }
+      ],
+      "info": {
+        "release_date": "1/2/2021",
+        "scale": "Am",
+        "time_signature": "4/4",
+        "video_id": "uPELcaItvFY"
+      },
+      "chords_and_lyrics": [
+        {
+          "lyric": "Μα ο κόσμος προχωρά χωρίς να μας ρωτά",
+          "chords": [
+            {
+              "index": 5,
+              "chord": "G"
+            },
+            {
+              "index": 17,
+              "chord": "Am"
+            }
+          ]
+        },
+        {
+          "lyric": "κλεισμένοι δρόμοι, κλέφτες και αστυνόμοι",
+          "chords": [
+            {
+              "index": 11,
+              "chord": "G"
+            },
+            {
+              "index": 35,
+              "chord": "Am"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+    "data": {
+        "error_codes": {
+            "no_auth" : 1,
+            "bad_request" : 2
+        }
+    }
+}
