@@ -1,62 +1,62 @@
 import os
-from uuid import uuid4
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
+from fastapi.exceptions import RequestValidationError
+from pydantic import BaseModel
 from starlette import status
-from auth.hash import get_hashed_password
-from response_models import auth
+from starlette.responses import JSONResponse
+
+from routers.global_data import router as global_data_router
+from routers.authentication import router as authentication_data_router
 
 app = FastAPI()
+app.include_router(global_data_router)
+app.include_router(authentication_data_router)
 
 load_dotenv(".env")  # Load environment variables from .env file
 
+
+class CustomError(BaseModel):
+    error_code: int
+    error_message: str
+
+
+class CustomException(Exception):
+    def __init__(self, error_code: int, error_message: str, response_code: int):
+        self.error_code = error_code
+        self.error_message = error_message
+        self.response_code = response_code
+
+
+@app.exception_handler(CustomException)
+async def custom_exception_handler(request, exc):
+    error_response = CustomError(
+        error_code=exc.error_code,
+        error_message=exc.error_message
+    )
+
+    error_response = {
+        "data":{},
+        "error":error_response.dict()
+    }
+    return JSONResponse(status_code=exc.response_code, content=error_response)
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exc):
+    error_messages = []
+    for error in exc.errors():
+        error_messages.append({
+            "data": {},
+            "error": {
+                "error_message": error.get("msg"),
+                "code": None
+            }
+        })
+
+    return JSONResponse(status_code=400, content=error_messages[0])
+
+
 @app.get("/greet")
 async def root():
-    return {"message": "All good","envFileTest":os.environ.get("postGresPassword")}
-
-@app.post('/user-register', summary="Create new user", response_model=auth.authRequest)
-async def create_user(form_data: auth.authRequest):
-    # querying database to check if user already exist
-    
-    user = None
-    if user is not None:
-            raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User with this email already exist"
-        )
-    
-    user = {
-        'email': form_data.email,
-        'password': get_hashed_password(form_data.password),
-        'id': str(uuid4())
-    }
-
-    return user
-
-
-@app.post('/login', summary="Create access and refresh tokens for user", response_model=auth.authResponse)
-async def login(form_data: auth.authRequest):
-
-    # user = user.mial
-
-    # if form_data.e !=  mail
-
-    # user = db.get(form_data.username, None)
-    # if user is None:
-    #     raise HTTPException(
-    #         status_code=status.HTTP_400_BAD_REQUEST,
-    #         detail="Incorrect email or password"
-    #     )
-
-    # hashed_pass = user['password']
-    # if not verify_password(form_data.password, hashed_pass):
-    #     raise HTTPException(
-    #         status_code=status.HTTP_400_BAD_REQUEST,
-    #         detail="Incorrect email or password"
-    #     )
-    
-    return {
-        "access_token": create_access_token(user['email']),
-        "refresh_token": create_refresh_token(user['email']),
-    }
-    
+    raise CustomException(400,"what",401)
+    return {"message": "All good", "envFileTest": os.environ.get("postGresPassword")}
