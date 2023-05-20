@@ -1,7 +1,11 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.exceptions import RequestValidationError
 from starlette import status
 from uuid import uuid4
+from models import User
+from models import sessionmaker
+from models import get_db
+from models import SessionLocal
 
 from starlette.responses import JSONResponse
 
@@ -12,33 +16,42 @@ from responses import auth_response
 router = APIRouter(prefix="/v1/api")
 
 
-@router.post('/user-register', summary="Create new models.py", response_model=auth_response.authRequest)
-async def create_user(form_data: auth_response.authRequest):
-    # querying database to check if models.py already exist
+@router.post('/user-register', summary="Create new user", response_model=auth_response.authResponse)
+async def register(form_data: auth_response.authRequest, db: SessionLocal = Depends(get_db)):
+    
+    existing_user = db.query(User).filter(User.email == form_data.email).first()
 
-    user = None
-    if user is not None:
+    if existing_user is not None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="User with this email already exist"
         )
-
-    user = {
-        'email': form_data.email,
-        'password': get_hashed_password(form_data.password),
-        'id': str(uuid4())
+    
+    # Create a new User instance
+    user = User(
+        email=form_data.email,
+        user_name=get_hashed_password(form_data.password)
+    )
+    
+    # Add the user to the session
+    db.add(user)
+    
+    # Commit the session to save the changes to the database
+    db.commit()
+    
+    # Return the created user data
+    return {
+        "token": get_hashed_password(form_data.password)
     }
-
-    return user
 
 
 @router.post('/login', summary="Create access and refresh tokens for models.py", response_model=auth_response.authResponse)
-async def login(form_data: auth_response.authRequest):
+async def login(form_data: auth_response.authRequest, db: SessionLocal = Depends(get_db)):
     # models.py = models.py.mial
 
     # if form_data.e !=  mail
 
-    # models.py = db.get(form_data.username, None)
+    # user = db.get(form_data.username, None)
     # if models.py is None:
     #     raise HTTPException(
     #         status_code=status.HTTP_400_BAD_REQUEST,

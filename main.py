@@ -1,37 +1,11 @@
 import os
-import time
 
-from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
-from psycopg2 import OperationalError
 from pydantic import BaseModel
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
-from starlette import status
 from starlette.responses import JSONResponse
 from routers.global_data import router as global_data_router
 from routers.authentication import router as authentication_data_router
-from fastapi import Depends
-from sqlalchemy import Column, Integer, String, DateTime, func
-from sqlalchemy.ext.declarative import declarative_base
-from db import check_postgres_ready
-
-load_dotenv(".env")
-postgresUrl = os.environ.get("POSTGRES_URL")
-Base = declarative_base()
-
-# This is an infinite loop. 
-engine = check_postgres_ready(postgresUrl)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base.metadata.create_all(bind=engine)
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 app = FastAPI()
