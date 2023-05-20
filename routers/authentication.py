@@ -7,13 +7,13 @@ from starlette.responses import JSONResponse
 
 from auth.hash import get_hashed_password
 from auth.jwt_generation import create_access_token, create_refresh_token
-from response_models import auth_model
+from responses import auth_response
 
 router = APIRouter(prefix="/v1/api")
 
 
-@router.post('/user-register', summary="Create new models.py", response_model=auth_model.authRequest)
-async def create_user(form_data: auth_model.authRequest):
+@router.post('/user-register', summary="Create new models.py", response_model=auth_response.authRequest)
+async def create_user(form_data: auth_response.authRequest):
     # querying database to check if models.py already exist
 
     user = None
@@ -32,8 +32,8 @@ async def create_user(form_data: auth_model.authRequest):
     return user
 
 
-@router.post('/login', summary="Create access and refresh tokens for models.py", response_model=auth_model.authResponse)
-async def login(form_data: auth_model.authRequest):
+@router.post('/login', summary="Create access and refresh tokens for models.py", response_model=auth_response.authResponse)
+async def login(form_data: auth_response.authRequest):
     # models.py = models.py.mial
 
     # if form_data.e !=  mail
