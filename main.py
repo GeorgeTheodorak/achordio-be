@@ -4,6 +4,7 @@ import time
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
+from psycopg2 import OperationalError
 from pydantic import BaseModel
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
@@ -14,8 +15,14 @@ from routers.authentication import router as authentication_data_router
 from fastapi import Depends
 from sqlalchemy import Column, Integer, String, DateTime, func
 from sqlalchemy.ext.declarative import declarative_base
+from db import check_postgres_ready
 
+load_dotenv(".env")
+postgresUrl = os.environ.get("POSTGRES_URL")
 Base = declarative_base()
+
+# This is an infinite loop. 
+engine = check_postgres_ready(postgresUrl)
 
 # class User(Base):
 #     __tablename__ = "users"
@@ -27,7 +34,6 @@ Base = declarative_base()
 #     updated_at = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
 #
 # # Load environment variables from .env file
-# load_dotenv(".env")
 #
 # engine = create_engine(os.environ.get("POSTGRES_URL"))
 # SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
