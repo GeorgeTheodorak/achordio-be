@@ -1,23 +1,34 @@
 from datetime import timedelta
-import time
-from auth.jwt_generation import ACCESS_TOKEN_EXPIRE_MINUTES
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.exceptions import RequestValidationError
 from sqlalchemy import and_
 from starlette import status
-from uuid import uuid4
 from models import User
-from models import sessionmaker
 from models import get_db
 from models import SessionLocal
-from starlette.responses import JSONResponse
 from auth.hash import get_hashed_password
 from auth.jwt_generation import create_access_token
 from responses import auth_response
 from exceptions.generic_exceptions import USER_EXISTS_EXCEPTION_CODE,CustomException,USER_DOSNT_EXISTS_EXCEPTION_CODE,USER_WRONG_CREDENTIALS_EXCEPTION_CODE
-from auth.hash import verify_password
+from auth.hash import verify_password,generate_jwt_data_from_user_model
+from fastapi import APIRouter, Depends, HTTPException, status
+from auth.hash import auth_token
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 router = APIRouter(prefix="/v1/api")
+security = HTTPBearer()
+
+TOKEN_MINUTES = 360000
+
+@router.get("/protected")
+async def protected_route(credentials: HTTPAuthorizationCredentials = Depends(security), db: SessionLocal = Depends(get_db)):
+    try:
+        token = credentials.credentials
+        if not auth_token(token,db):
+            return {"no","1"}
+        return {"message": "This is a protected route."}
+    except Exception as e:
+        # If any error occurs during token validation, raise an exception
+        raise e
 
 
 @router.post('/user-register', summary="Create new user", response_model=auth_response.authResponse)
@@ -46,12 +57,11 @@ async def register(form_data: auth_response.authRequest, db: SessionLocal = Depe
     # Commit the session to save the changes to the database
     db.commit()
     
-
     # Generate the access token
-    access_token_expires = timedelta(minutes=30)
+    access_token_expires = timedelta(minutes=TOKEN_MINUTES)
 
     access_token = create_access_token(
-        data={"sub": user.user_name}, expires_delta=access_token_expires
+        data=generate_jwt_data_from_user_model(user), expires_delta=access_token_expires
     )
 
     # Return the created user data
@@ -63,15 +73,12 @@ async def register(form_data: auth_response.authRequest, db: SessionLocal = Depe
 async def login(form_data: auth_response.authRequest, db: SessionLocal = Depends(get_db)):
 
     existing_user = db.query(User).filter(and_(User.email == form_data.email, User.user_name == form_data.user_name)).first()
-
     if existing_user is None:
         raise CustomException(
             USER_DOSNT_EXISTS_EXCEPTION_CODE,
             "User not found",
             status.HTTP_403_FORBIDDEN
         )
-
-    print(f"pass: {form_data.password} : hashed pass: {existing_user.password}")
 
     if not verify_password(form_data.password, existing_user.password):
         raise CustomException(
@@ -81,10 +88,10 @@ async def login(form_data: auth_response.authRequest, db: SessionLocal = Depends
         )
 
     # Generate the access token
-    access_token_expires = timedelta(minutes=30)
+    access_token_expires = timedelta(minutes=TOKEN_MINUTES)
 
     access_token = create_access_token(
-        data={"sub": existing_user.user_name}, expires_delta=access_token_expires
+        data=generate_jwt_data_from_user_model(existing_user), expires_delta=access_token_expires
     )
 
     return {"token": access_token}
