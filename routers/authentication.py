@@ -1,5 +1,5 @@
 from datetime import timedelta
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import and_
 from starlette import status
 from models import User
@@ -20,15 +20,23 @@ security = HTTPBearer()
 TOKEN_MINUTES = 360000
 
 @router.get("/protected")
-async def protected_route(credentials: HTTPAuthorizationCredentials = Depends(security), db: SessionLocal = Depends(get_db)):
-    try:
-        token = credentials.credentials
-        if not auth_token(token,db):
-            return {"no","1"}
-        return {"message": "This is a protected route."}
-    except Exception as e:
-        # If any error occurs during token validation, raise an exception
-        raise e
+async def protected_route(request :Request, db: SessionLocal = Depends(get_db)):
+    authorization_header = request.headers.get("Authorization")
+    
+    if authorization_header and authorization_header.startswith("Bearer "):
+        token = authorization_header.split(" ")[1]
+        auth_token(token, db)  # Perform token validation if token is provided
+        route_token = True
+    else:
+        token = None
+        route_token = False
+
+    return {
+        "routeToken": route_token,
+        "status": "good"
+    }
+
+
 
 
 @router.post('/user-register', summary="Create new user", response_model=auth_response.authResponse)

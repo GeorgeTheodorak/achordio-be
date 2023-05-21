@@ -1,19 +1,18 @@
 import os
-
 from exceptions.generic_exceptions import CustomError
 from exceptions.generic_exceptions import CustomException
-
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from starlette.responses import JSONResponse
 from routers.global_data import router as global_data_router
 from routers.authentication import router as authentication_data_router
+from routers.songs.song import song_router
 
 
 app = FastAPI()
 app.include_router(global_data_router)
 app.include_router(authentication_data_router)
-
+app.include_router(song_router)
 
 
 @app.exception_handler(CustomException)

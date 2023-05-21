@@ -1,6 +1,6 @@
 import datetime
 import time
-from exceptions.generic_exceptions import USER_WRONG_CREDENTIALS_EXCEPTION_CODE,CustomException,USER_EXPIRED_TOKEN
+from exceptions.generic_exceptions import USER_WRONG_CREDENTIALS_EXCEPTION_CODE,CustomException,USER_EXPIRED_TOKEN,USER_INVALID_TOKEN_TYPE
 from fastapi import status
 from sqlalchemy import and_
 from models import User
@@ -24,8 +24,15 @@ def verify_password(password: str, hashed_pass: str) -> bool:
 
 def auth_token(token,db)->bool:    
     
-    
-    decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+    try:
+        decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+    except Exception as E:
+        # expired token.
+        raise CustomException(
+            USER_INVALID_TOKEN_TYPE,
+            "INVALID TOKEN TYPE TOKEN",
+            status.HTTP_403_FORBIDDEN
+        )
 
     user_name = decoded_token.get("sub")
     password = decoded_token.get("pw")
@@ -53,6 +60,14 @@ def auth_token(token,db)->bool:
             status.HTTP_403_FORBIDDEN
         )
     else:
+        
+        if user.password != password:
+            raise CustomException(
+                USER_WRONG_CREDENTIALS_EXCEPTION_CODE,
+                "Invalid Token",
+                status.HTTP_403_FORBIDDEN
+            )
+
         return True
     
 

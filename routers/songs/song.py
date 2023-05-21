@@ -1,16 +1,15 @@
+from fastapi import FastAPI, APIRouter
 
-from fastapi import APIRouter
+app = FastAPI()
+song_router = APIRouter()
 
-router = APIRouter(prefix="/v1/api")
+
+class ItemRouter:
+    @song_router.get("/songs")
+    async def get_items(self):
+        return {"message": "Get all songs"}
 
 
-@router.get("/global-data", summary="returns constants and important data")
-async def globalData():
-    return {
-        "data": {
-            "error_codes": {
-                "no_auth": 1,
-                "bad_request": 2
-            }
-        }
-    }
+
+item_router = ItemRouter()
+app.include_router(song_router, tags=["items"], prefix="/api")
