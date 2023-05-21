@@ -28,8 +28,8 @@ def return_auth(subject: Union[str, Any], expires_delta: int = None):
 
 
 def create_access_token(subject: Union[str, Any], expires_delta: int = None) -> str:
-    return_auth(expires_delta, subject)
-
+    return return_auth(subject, expires_delta)
 
 def create_refresh_token(subject: Union[str, Any], expires_delta: int = None) -> str:
-    return_auth(expires_delta, subject)
+    return return_auth(subject, expires_delta)
+

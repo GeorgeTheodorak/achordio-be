@@ -1,3 +1,4 @@
+import time
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.exceptions import RequestValidationError
 from sqlalchemy import and_
@@ -45,12 +46,13 @@ async def register(form_data: auth_response.authRequest, db: SessionLocal = Depe
     
     # Return the created user data
     return {
-        "token": create_access_token( form_data.email + form_data.user_name )
+        "token": create_access_token(form_data.user_name )
     }
 
 
 @router.post('/login', summary="Create access and refresh tokens for models.py", response_model=auth_response.authResponse)
 async def login(form_data: auth_response.authRequest, db: SessionLocal = Depends(get_db)):
+
     existing_user = db.query(User).filter(and_(User.email == form_data.email, User.user_name == form_data.user_name)).first()
 
     if existing_user == None :
@@ -60,18 +62,21 @@ async def login(form_data: auth_response.authRequest, db: SessionLocal = Depends
                     status.HTTP_403_FORBIDDEN
                 )
 
-    if verify_password() == False:
-               
+    print(f"pass:{form_data.password} : hashed pass : {existing_user.password}")
+
+    if verify_password(form_data.password,existing_user.password) == False:
+
         raise CustomException(
             USER_WRONG_CREDENTIALS_EXCEPTION_CODE,
-            "User not found",
+            "What password is this brother?",
             status.HTTP_403_FORBIDDEN
         )
 
 
     return {
-        "token": create_access_token( User.email + User.user_name )
+        "token": create_access_token( 'dasjdaosjdpos' )
     }
+
 # .
 # ├── achordio-be
 # │   ├── __init__.py
