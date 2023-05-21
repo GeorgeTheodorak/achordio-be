@@ -1,0 +1,16 @@
+from pydantic import BaseModel
+
+
+class CustomError(BaseModel):
+    error_code: int
+    error_message: str
+
+
+class CustomException(Exception):
+    def __init__(self, error_code: int, error_message: str, response_code: int):
+        self.error_code = error_code
+        self.error_message = error_message
+        self.response_code = response_code
+
+
+USER_EXISTS_EXCEPTION_CODE = 1001

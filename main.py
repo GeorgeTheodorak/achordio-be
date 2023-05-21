@@ -1,8 +1,10 @@
 import os
 
+from exceptions.generic_exceptions import CustomError
+from exceptions.generic_exceptions import CustomException
+
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
-from pydantic import BaseModel
 from starlette.responses import JSONResponse
 from routers.global_data import router as global_data_router
 from routers.authentication import router as authentication_data_router
@@ -12,17 +14,6 @@ app = FastAPI()
 app.include_router(global_data_router)
 app.include_router(authentication_data_router)
 
-
-class CustomError(BaseModel):
-    error_code: int
-    error_message: str
-
-
-class CustomException(Exception):
-    def __init__(self, error_code: int, error_message: str, response_code: int):
-        self.error_code = error_code
-        self.error_message = error_message
-        self.response_code = response_code
 
 
 @app.exception_handler(CustomException)

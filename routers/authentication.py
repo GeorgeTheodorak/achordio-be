@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.exceptions import RequestValidationError
+from sqlalchemy import and_
 from starlette import status
 from uuid import uuid4
 from models import User
@@ -12,6 +13,8 @@ from starlette.responses import JSONResponse
 from auth.hash import get_hashed_password
 from auth.jwt_generation import create_access_token, create_refresh_token
 from responses import auth_response
+from exceptions.generic_exceptions import USER_EXISTS_EXCEPTION_CODE,CustomException
+
 
 router = APIRouter(prefix="/v1/api")
 
@@ -19,12 +22,14 @@ router = APIRouter(prefix="/v1/api")
 @router.post('/user-register', summary="Create new user", response_model=auth_response.authResponse)
 async def register(form_data: auth_response.authRequest, db: SessionLocal = Depends(get_db)):
     
-    existing_user = db.query(User).filter(User.email == form_data.email).first()
+    existing_user = db.query(User).filter(and_(User.email == form_data.email, User.name == form_data.user_name)).first()
 
     if existing_user is not None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User with this email already exist"
+        
+        raise CustomException(
+            USER_EXISTS_EXCEPTION_CODE,
+            "User already exist",
+            status.HTTP_403_FORBIDDEN
         )
     
     # Create a new User instance

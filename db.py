@@ -6,10 +6,8 @@ from sqlalchemy import create_engine
 def check_postgres_ready(connection_string):
     while True:
         try:
-            print(connection_string)
-            time.sleep(5)
+            print("Trying to connect to db.")
             engine = create_engine(connection_string)
-
             with engine.connect():
                 return engine
         except OperationalError:
