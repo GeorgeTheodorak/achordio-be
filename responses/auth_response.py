@@ -11,4 +11,5 @@ class authResponse(BaseModel):
 class authRequest(BaseModel):
     email: EmailStr
     password: str
+    user_name: str
 
