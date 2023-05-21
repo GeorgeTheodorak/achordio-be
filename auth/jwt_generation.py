@@ -1,35 +1,36 @@
-import os
+import json
+from fastapi import FastAPI, HTTPException, Depends
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+from jose import jwt, JWTError
+from passlib.context import CryptContext
 from datetime import datetime, timedelta
-from typing import Union, Any
-from jose import jwt
 
-import secrets
-
-# Generate a random string with 64 bytes (512 bits) of entropy
-JWT_SECRET_KEY = secrets.token_urlsafe(64)
-
-# Generate a random string with 32 bytes (256 bits) of entropy
-JWT_REFRESH_SECRET_KEY = secrets.token_urlsafe(32)
-
-ACCESS_TOKEN_EXPIRE_MINUTES = 3600000
-REFRESH_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7
+# Token settings
+SECRET_KEY = "12[o3j1p[kdn[09wdnoaibndnond'lkq]]]"
 ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+# Password hashing
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-def return_auth(subject: Union[str, Any], expires_delta: int = None):
-    if expires_delta is not None:
-        expires_delta = datetime.utcnow() + expires_delta
-    else:
-        expires_delta = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+def create_access_token(data: dict, expires_delta: timedelta):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + expires_delta
+    to_encode.update({"exp": expire})
 
-    to_encode = {"exp": expires_delta, "sub": str(subject)}
-    encoded_jwt = jwt.encode(to_encode, JWT_SECRET_KEY, ALGORITHM)
+    encoded_payload = to_encode
+
+    encoded_jwt = jwt.encode(encoded_payload, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
 
-def create_access_token(subject: Union[str, Any], expires_delta: int = None) -> str:
-    return return_auth(subject, expires_delta)
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
 
-def create_refresh_token(subject: Union[str, Any], expires_delta: int = None) -> str:
-    return return_auth(subject, expires_delta)
 
+def get_password_hash(password):
+    return pwd_context.hash(password)

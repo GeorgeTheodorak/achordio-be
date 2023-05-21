@@ -53,3 +53,19 @@ async def root():
 async def root():
     raise CustomException(1,"custopmErr-r",404)
     return {"message": "All good", "envFileTest": os.environ.get("POSTGRES_URL")}
+
+
+
+# .
+# ├── achordio-be
+# │   ├── __init__.py
+# │   ├── main.py
+# │   ├── test.py
+# │   └── routers
+# │   │   ├── __init__.py
+# │   │   ├── authentication.py
+# │   │   └── global_data.py
+# │   └── auth
+# │       ├── __init__.py
+# │       ├── jwt_generation.py
+# │       └── hash.py
