@@ -1,4 +1,5 @@
 from datetime import timedelta
+from operator import or_
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import and_
 from starlette import status
@@ -42,20 +43,20 @@ async def protected_route(request :Request, db: SessionLocal = Depends(get_db)):
 @router.post('/user-register', summary="Create new user", response_model=auth_response.authResponse)
 async def register(form_data: auth_response.authRequest, db: SessionLocal = Depends(get_db)):
     
-    existing_user = db.query(User).filter(and_(User.email == form_data.email, User.user_name == form_data.user_name)).first()
+    existing_user = db.query(User).filter(User.email == form_data.email).first()
 
     if existing_user is not None:
         
         raise CustomException(
             USER_EXISTS_EXCEPTION_CODE,
-            "User already exist",
+            "User already exists",
             status.HTTP_403_FORBIDDEN
         )
     
     # Create a new User instance
     user = User(
         email=form_data.email,
-        user_name=form_data.user_name,
+        user_name=form_data.email.split("@")[0],
         password=get_hashed_password(form_data.password),
     )
     
@@ -80,7 +81,8 @@ async def register(form_data: auth_response.authRequest, db: SessionLocal = Depe
 @router.post('/login', summary="Create access and refresh tokens for models.py", response_model=auth_response.authResponse)
 async def login(form_data: auth_response.authRequest, db: SessionLocal = Depends(get_db)):
 
-    existing_user = db.query(User).filter(and_(User.email == form_data.email, User.user_name == form_data.user_name)).first()
+    existing_user = db.query(User).filter(User.email == form_data.email).first()
+
     if existing_user is None:
         raise CustomException(
             USER_DOSNT_EXISTS_EXCEPTION_CODE,
