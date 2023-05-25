@@ -23,7 +23,7 @@ def upgrade() -> None:
     sa.Column('title', sa.String(), nullable=False),
     sa.Column('content', sa.Text(), nullable=False),
     sa.Column('thumbnail', sa.LargeBinary(), nullable=False),
-    sa.Column('article_date', sa.String(), nullable=False),
+    sa.Column('article_date', sa.DateTime(), nullable=False),
     sa.Column('description', sa.String(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=False),

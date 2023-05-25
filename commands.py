@@ -1,31 +1,40 @@
-import datetime
-
-from commands.article_command import createArticle
-import sys
+import random
+from datetime import datetime, timedelta
 from faker import Faker
+from commands.article_command import createArticleWithParams
+import sys
 
 
-# python commands.py article --create "data/images/Cat03.jpg" "My First Article" "1/1/2022" "This is a dummy thing"
-def runFunction(args):
-    imagePath = args[3]
-    text = "<h1>THIS IS A TEST</h1>"
+# python commands.py article --create --rand
+def createRandomArticle():
+    random_number = random.randint(1, 30)
 
-    title = args[4]
-    if title == "--random":
-        fake = Faker()
-        article_name = fake.catch_phrase()
+    imagePath = f"data/random_images/{random_number}.jpg"
 
-    article_date = args[5]
-    description = args[6]
+    fake = Faker()
+    article_name = fake.catch_phrase()
+    fakeParagraph = fake.text()
+    text = f"<p>{fakeParagraph}</p>"
+    current_date = datetime.now().date()
 
-    _id = createArticle(imagePath, title, article_date, text, description)
-    print(f"Created new article with name {title} and id {_id}")
+    random_days = random.randint(1, 365)
+    random_date = current_date - timedelta(days=random_days)
+    description = fake.text()
+
+    _id = createArticleWithParams(imagePath, article_name, random_date, text, description)
+    print(f"Created new article with name {article_name} and id {_id}")
+
+def createArticle(l)->None:
+    pass
 
 
 def main():
     if len(sys.argv) > 1:
         if sys.argv[1] == 'article' and sys.argv[2] == "--create":
-            runFunction(sys.argv)
+            if sys.argv[3] == "--rand":
+                createRandomArticle()
+            else:
+                createArticle(sys.argv)
             exit(1)
     else:
         print("Invalid command")

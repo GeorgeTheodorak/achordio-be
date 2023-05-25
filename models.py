@@ -58,7 +58,6 @@ class Article(Base):
     title = Column(String, nullable=False)
     content = Column(Text, nullable=False)
     thumbnail = Column(LargeBinary, nullable=False)
-    article_date = Column(DateTime, nullable=False, default=func.now())
     description = Column(String, nullable=False)
     created_at = Column(DateTime, nullable=False, default=func.now())
     updated_at = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
@@ -72,7 +71,6 @@ class Article(Base):
             "id": self.id,
             "title": self.title,
             "thumbnail": encoded_image,
-            "article_date": self.article_date,
             "description": self.description,
         }
 

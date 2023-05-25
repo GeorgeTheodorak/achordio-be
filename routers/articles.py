@@ -10,20 +10,17 @@ router = APIRouter(prefix="/v1/api")
 
 @router.get("/articles", summary="returns constants and important data", response_model=None)
 async def getArticles(db: SessionLocal = Depends(get_db), skip: int = 0, limit: int = 100):
-    articles = db.query(Article.id, Article.title, Article.description, Article.article_date) \
+    articles = db.query(Article) \
         .offset(skip).limit(limit) \
-        .add_columns(
-        func.json_build_object('id', Article.id, 'title', Article.title, 'description', Article.description,
-                               'article_date', Article.article_date).label('article')) \
         .all()
 
     response = []
-    for row in articles:
-        response.append(row.article)
+    for article in articles:
+        response.append(article.fixModelFieldsForResponse(False))
 
     return {"data": {
         "articles": response
-    }
+        }
     }
 
 
