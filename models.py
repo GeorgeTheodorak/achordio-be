@@ -1,3 +1,4 @@
+import base64
 import os
 import time
 from db import check_postgres_ready
@@ -61,3 +62,18 @@ class Article(Base):
     description = Column(String, nullable=False)
     created_at = Column(DateTime, nullable=False, default=func.now())
     updated_at = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
+
+    def fixModelFieldsForResponse(self):
+        binaryThumb = self.thumbnail
+        # Encode the image data as Base64
+        encoded_image = base64.b64encode(binaryThumb).decode('utf-8')
+
+        return {
+            "id": self.id,
+            "title": self.title,
+            "thumbnail": encoded_image,
+            "content": self.content,
+            "article_date": self.article_date,
+            "description": self.description,
+            "created_at": self.created_at
+        }

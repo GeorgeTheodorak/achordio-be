@@ -17,16 +17,22 @@ async def getArticles(db: SessionLocal = Depends(get_db), skip: int = 0, limit: 
                                'article_date', Article.article_date).label('article')) \
         .all()
 
-    # response = {"data":{}}
-    # for row in articles:
-    #     response['data'].append
-    # # Extract the 'article' dictionary from each row
-    articles = [row.article for row in articles]
+    response = []
+    for row in articles:
+        response.append(row.article)
 
-    return articles
+    return {"data": response}
+
 
 @router.get("/articles/{article_id}")
 async def getArticle(article_id: int, db: SessionLocal = Depends(get_db)):
-    articles = db.query(Article).offset(skip).limit(limit).all()
-    db.close()
-    return articles
+    article = db.query(Article).filter(Article.id == article_id).first()
+    if article is None:
+        return {"data": {}}
+
+    response = {
+        "data": article.fixModelFieldsForResponse()
+
+    }
+
+    return response
