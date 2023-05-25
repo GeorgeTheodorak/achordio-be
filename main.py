@@ -7,12 +7,13 @@ from starlette.responses import JSONResponse
 from routers.global_data import router as global_data_router
 from routers.authentication import router as authentication_data_router
 from routers.songs.song import song_router
-
+from routers.articles import router as article_router
 
 app = FastAPI()
 app.include_router(global_data_router)
 app.include_router(authentication_data_router)
 app.include_router(song_router)
+app.include_router(article_router)
 
 
 @app.exception_handler(CustomException)
@@ -46,14 +47,12 @@ async def validation_exception_handler(request, exc):
 
 @app.get("/greet")
 async def root():
-    return {"message": "All good", "envFileTest": os.environ.get("POSTGRES_URL")}
+    return {"message": "Whats up brother?"}
+
 
 @app.get("/error-test")
 async def root():
-    raise CustomException(1,"custopmErr-r",404)
-    return {"message": "All good", "envFileTest": os.environ.get("POSTGRES_URL")}
-
-
+    raise CustomException(1, "This is my custom error", 404)
 
 # .
 # ├── achordio-be
@@ -64,7 +63,7 @@ async def root():
 # │   │   ├── __init__.py
 # │   │   ├── authentication.py
 # │   │   └── global_data.py
-# │   └── auth
+# │   └── auth_request.py
 # │       ├── __init__.py
 # │       ├── jwt_generation.py
 # │       └── hash.py

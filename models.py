@@ -2,7 +2,7 @@ import os
 import time
 from db import check_postgres_ready
 from dotenv import load_dotenv
-from sqlalchemy import Column, Integer, String, DateTime, func
+from sqlalchemy import Column, Integer, String, DateTime, func, Text, LargeBinary
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
@@ -18,12 +18,14 @@ engine = check_postgres_ready(postgresUrl)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base.metadata.create_all(bind=engine)
 
-def get_db()->sessionmaker:
+
+def get_db() -> sessionmaker:
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
+
 
 class User(Base):
     metadata = Base.metadata
@@ -39,7 +41,23 @@ class User(Base):
 
     def fixModelFields(self):
         return {
-            "id":self.id,
-            "user_name":self.user_name,
-            "email":self.email
+            "id": self.id,
+            "user_name": self.user_name,
+            "email": self.email
         }
+
+
+class Article(Base):
+    metadata = Base.metadata
+
+    __tablename__ = "articles"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    title = Column(String, nullable=False)
+    content = Column(Text, nullable=False)
+    thumbnail = Column(LargeBinary, nullable=False)
+    article_date = Column(String, nullable=False)
+    description = Column(String, nullable=False)
+    created_at = Column(DateTime, nullable=False, default=func.now())
+    updated_at = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())

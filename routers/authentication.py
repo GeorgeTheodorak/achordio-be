@@ -1,29 +1,31 @@
 from datetime import timedelta
-from operator import or_
-from fastapi import APIRouter, Depends, HTTPException, Request
-from sqlalchemy import and_
-from starlette import status
+
+from fastapi import APIRouter, Depends, status
+from fastapi import Request
+from fastapi.security import HTTPBearer
+
+from auth.hash import auth_token
+from auth.hash import get_hashed_password
+from auth.hash import verify_password, generate_jwt_data_from_user_model
+from auth.jwt_generation import create_access_token
+from exceptions.generic_exceptions import USER_EXISTS_EXCEPTION_CODE, CustomException, USER_DOSNT_EXISTS_EXCEPTION_CODE, \
+    USER_WRONG_CREDENTIALS_EXCEPTION_CODE
+from models import SessionLocal
 from models import User
 from models import get_db
-from models import SessionLocal
-from auth.hash import get_hashed_password
-from auth.jwt_generation import create_access_token
-from responses import auth_response
-from exceptions.generic_exceptions import USER_EXISTS_EXCEPTION_CODE,CustomException,USER_DOSNT_EXISTS_EXCEPTION_CODE,USER_WRONG_CREDENTIALS_EXCEPTION_CODE
-from auth.hash import verify_password,generate_jwt_data_from_user_model
-from fastapi import APIRouter, Depends, HTTPException, status
-from auth.hash import auth_token
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from base_models.responses.auth_response import authResponse
+from base_models.requests.auth_request import authRequest
 
 router = APIRouter(prefix="/v1/api")
 security = HTTPBearer()
 
 TOKEN_MINUTES = 360000
 
+
 @router.get("/protected")
-async def protected_route(request :Request, db: SessionLocal = Depends(get_db)):
+async def protected_route(request: Request, db: SessionLocal = Depends(get_db)):
     authorization_header = request.headers.get("Authorization")
-    
+
     if authorization_header and authorization_header.startswith("Bearer "):
         token = authorization_header.split(" ")[1]
         auth_token(token, db)  # Perform token validation if token is provided
@@ -38,34 +40,30 @@ async def protected_route(request :Request, db: SessionLocal = Depends(get_db)):
     }
 
 
-
-
-@router.post('/user-register', summary="Create new user", response_model=auth_response.authResponse)
-async def register(form_data: auth_response.authRequest, db: SessionLocal = Depends(get_db)):
-    
+@router.post('/user-register', summary="Create new user", response_model=authResponse)
+async def register(form_data: authRequest, db: SessionLocal = Depends(get_db)):
     existing_user = db.query(User).filter(User.email == form_data.email).first()
 
     if existing_user is not None:
-        
         raise CustomException(
             USER_EXISTS_EXCEPTION_CODE,
             "User already exists",
             status.HTTP_403_FORBIDDEN
         )
-    
+
     # Create a new User instance
     user = User(
         email=form_data.email,
         user_name=form_data.email.split("@")[0],
         password=get_hashed_password(form_data.password),
     )
-    
+
     # Add the user to the session
     db.add(user)
-    
+
     # Commit the session to save the changes to the database
     db.commit()
-    
+
     # Generate the access token
     access_token_expires = timedelta(minutes=TOKEN_MINUTES)
 
@@ -78,9 +76,10 @@ async def register(form_data: auth_response.authRequest, db: SessionLocal = Depe
         "token": access_token
     }
 
-@router.post('/login', summary="Create access and refresh tokens for models.py", response_model=auth_response.authResponse)
-async def login(form_data: auth_response.authRequest, db: SessionLocal = Depends(get_db)):
 
+@router.post('/login', summary="Create access and refresh tokens for models.py",
+             response_model=authResponse)
+async def login(form_data: authRequest, db: SessionLocal = Depends(get_db)):
     existing_user = db.query(User).filter(User.email == form_data.email).first()
 
     if existing_user is None:
