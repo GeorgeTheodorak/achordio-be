@@ -1,12 +1,20 @@
+import datetime
+
 from commands.article_command import createArticle
 import sys
+from faker import Faker
 
 
 # python commands.py article --create "data/images/Cat03.jpg" "My First Article" "1/1/2022" "This is a dummy thing"
 def runFunction(args):
     imagePath = args[3]
     text = "<h1>THIS IS A TEST</h1>"
+
     title = args[4]
+    if title == "--random":
+        fake = Faker()
+        article_name = fake.catch_phrase()
+
     article_date = args[5]
     description = args[6]
 

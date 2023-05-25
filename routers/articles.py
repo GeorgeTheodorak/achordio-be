@@ -21,7 +21,10 @@ async def getArticles(db: SessionLocal = Depends(get_db), skip: int = 0, limit: 
     for row in articles:
         response.append(row.article)
 
-    return {"data": response}
+    return {"data": {
+        "articles": response
+    }
+    }
 
 
 @router.get("/articles/{article_id}")
@@ -31,8 +34,9 @@ async def getArticle(article_id: int, db: SessionLocal = Depends(get_db)):
         return {"data": {}}
 
     response = {
-        "data": article.fixModelFieldsForResponse()
-
+        "data": {
+            "articles": article.fixModelFieldsForResponse(is_light_mode=False)
+        }
     }
 
     return response
