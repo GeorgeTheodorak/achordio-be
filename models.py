@@ -72,6 +72,7 @@ class Article(Base):
             "title": self.title,
             "thumbnail": encoded_image,
             "description": self.description,
+            "created_at":self.created_at
         }
 
         if not is_light_mode:
