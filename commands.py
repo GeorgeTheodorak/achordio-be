@@ -1,8 +1,13 @@
+import argparse
+import os
 import random
 from datetime import datetime, timedelta
+
+from dotenv import load_dotenv
 from faker import Faker
-from commands.article_command import createArticleWithParams
+# from commands.article_command import createArticleWithParams
 import sys
+from commands.artist_command import createBaseTopArtists
 
 
 # python commands.py article --create --rand
@@ -24,7 +29,8 @@ def createRandomArticle():
     _id = createArticleWithParams(imagePath, article_name, random_date, text, description)
     print(f"Created new article with name {article_name} and id {_id}")
 
-def createArticle(l)->None:
+
+def createArticle(l) -> None:
     pass
 
 
@@ -36,9 +42,60 @@ def main():
             else:
                 createArticle(sys.argv)
             exit(1)
+        if sys.argv[1] == "artists" and sys.argv == "--create":
+            if sys.argv[3] == "--rand":
+
+                genre = sys.argv[4]
+
+                last_fm_url = os.environ.get("LAST_FM_URL")
+                last_fm_api_key = os.environ.get("LAST_FM_API_KEY")
+
+                createBaseTopArtists(genre, last_fm_url, last_fm_api_key)
+            else:
+                createArticle(sys.argv)
     else:
         print("Invalid command")
 
 
+def modifiedMain():
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers(dest='command')
+
+    article_parser = subparsers.add_parser('article', help='Create an article')
+    article_parser.add_argument('--create', action='store_true', help='Create an article')
+    article_parser.add_argument('--rand', action='store_true', help='Create a random article')
+
+    artists_parser = subparsers.add_parser('artists', help='Get top artists')
+    artists_parser.add_argument('--create', action='store_true', help='Create base top artists')
+    artists_parser.add_argument('--rand', action='store_true', help='Create random base top artists')
+    artists_parser.add_argument('genre', type=str, help='Specify the genre')
+
+    args = parser.parse_args()
+
+    if args.command == 'article':
+        if args.create:
+            if args.rand:
+                createRandomArticle()
+            else:
+                createArticle(sys.argv)
+        else:
+            print("Invalid command")
+
+    elif args.command == 'artists':
+        if args.create:
+            if args.rand:
+                last_fm_url = os.environ.get("LAST_FM_URL")
+                last_fm_api_key = os.environ.get("LAST_FM_API_KEY")
+                createBaseTopArtists(args.genre, last_fm_url, last_fm_api_key)
+            else:
+                print("NOT YET IMPLEMENTED")
+                pass
+        else:
+            print("Invalid command")
+
+    else:
+        print("Invalid comand")
+
 if __name__ == "__main__":
-    main()
+    load_dotenv(".env")
+    modifiedMain()

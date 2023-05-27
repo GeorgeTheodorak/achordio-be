@@ -72,10 +72,24 @@ class Article(Base):
             "title": self.title,
             "thumbnail": encoded_image,
             "description": self.description,
-            "created_at":self.created_at
+            "created_at": self.created_at
         }
 
         if not is_light_mode:
             base_response["content"] = self.content
 
         return base_response
+
+
+class Artists(Base):
+    metadata = Base.metadata
+    __tablename__ = "artists"
+
+    id = Column(Integer, primary_key=True, index=True)
+    music_brainz_identifier = Column(String, index=True, nullable=True)
+    spotify_id = Column(String, index=True, nullable=True)
+    isni_code = Column(String, nullable=True)
+    name = Column(String, nullable=False)
+    description = Column(Text, nullable=False)
+    created_at = Column(DateTime, nullable=False, default=func.now())
+    updated_at = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
