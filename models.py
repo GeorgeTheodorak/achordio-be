@@ -93,3 +93,17 @@ class Artists(Base):
     description = Column(Text, nullable=False)
     created_at = Column(DateTime, nullable=False, default=func.now())
     updated_at = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
+
+
+    def fixModelFieldsForResponse(self, is_light_mode: bool) -> dict:
+
+        base_response = {
+            "id": self.id,
+            "name": self.name,
+            "spotify_id": self.spotify_id,
+            "isni_code": self.isni_code,
+            "description": self.description,
+            "music_brainz_identifier": self.music_brainz_identifier,
+        }
+
+        return base_response
