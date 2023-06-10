@@ -9,6 +9,7 @@ from routers.authentication import router as authentication_data_router
 from routers.songs.song import song_router
 from routers.articles import router as article_router
 from routers.artists import router as artists_router
+from loguru import logger
 
 # This runs the fast api application.
 app = FastAPI()
@@ -19,6 +20,8 @@ app.include_router(song_router)
 app.include_router(article_router)
 app.include_router(artists_router)
 
+# Configure Loguru logger
+logger.add("logs/runtime.log", rotation="500 MB", compression="zip", serialize=True)
 
 @app.exception_handler(CustomException)
 async def custom_exception_handler(request, exc):
