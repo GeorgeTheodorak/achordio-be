@@ -10,7 +10,9 @@ from routers.songs.song import song_router
 from routers.articles import router as article_router
 from routers.artists import router as artists_router
 
+# This runs the fast api application.
 app = FastAPI()
+
 app.include_router(global_data_router)
 app.include_router(authentication_data_router)
 app.include_router(song_router)

@@ -28,7 +28,7 @@ async def protected_route(request: Request, db: SessionLocal = Depends(get_db)):
 
     if authorization_header and authorization_header.startswith("Bearer "):
         token = authorization_header.split(" ")[1]
-        auth_token(token, db)  # Perform token validation if token is provided
+        auth_token(token, db, False)  # Perform token validation if token is provided
         route_token = True
     else:
         token = None
