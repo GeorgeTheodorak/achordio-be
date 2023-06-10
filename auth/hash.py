@@ -1,6 +1,6 @@
 import datetime
 import time
-from typing import Type
+from typing import Type, Union
 
 from exceptions.generic_exceptions import USER_WRONG_CREDENTIALS_EXCEPTION_CODE, CustomException, USER_EXPIRED_TOKEN, \
     USER_INVALID_TOKEN_TYPE
@@ -24,7 +24,7 @@ def verify_password(password: str, hashed_pass: str) -> bool:
     return password_context.verify(password, hashed_pass)
 
 
-def auth_token(token, db, return_user: bool) -> Type[User] | bool:
+def auth_token(token, db, return_user: bool) -> Union[User, bool]:
     try:
         decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
     except Exception as E:
