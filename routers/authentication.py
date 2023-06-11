@@ -10,6 +10,7 @@ from auth.hash import auth_token
 from auth.hash import get_hashed_password
 from auth.hash import verify_password, generate_jwt_data_from_user_model
 from auth.jwt_generation import create_access_token
+from auth.user_wrapper import validate_token
 from exceptions.generic_exceptions import USER_EXISTS_EXCEPTION_CODE, CustomException, USER_DOSNT_EXISTS_EXCEPTION_CODE, \
     USER_WRONG_CREDENTIALS_EXCEPTION_CODE
 from models import SessionLocal
@@ -22,22 +23,6 @@ router = APIRouter(prefix="/v1/api")
 security = HTTPBearer()
 
 TOKEN_MINUTES = 360000
-
-
-def validate_token(func):
-    @wraps(func)
-    async def wrapper(request: Request, db,user = None):
-        authorization_header = request.headers.get("Authorization")
-
-        if authorization_header and authorization_header.startswith("Bearer "):
-            token = authorization_header.split(" ")[1]
-            user = auth_token(token, db, False)  # Perform token validation if token is provided
-            route_token = True
-
-        return await func(request, db, user=user) 
-    
-    return wrapper
-
 
 @router.get("/protected")
 async def protected_route(request: Request, db: SessionLocal = Depends(get_db)):
@@ -85,7 +70,7 @@ async def register(form_data: authRequest, db: SessionLocal = Depends(get_db)):
         email=form_data.email,
         user_name=user_name_to_save,
         password=get_hashed_password(form_data.password),
-        user_visibility=1
+        user_visibility=1,
     )
 
     # Add the user to the session
@@ -138,10 +123,14 @@ async def login(form_data: authRequest, db: SessionLocal = Depends(get_db)):
 
 
 
-@router.get("/verify_code")
+@router.post("/verify_code")
 @validate_token
 async def verify_code(request: Request, db: SessionLocal = Depends(get_db),user=None):
     if not user:
         return {
             "status": "!good",
         }
+    
+    return {'status':"good"}
+
+

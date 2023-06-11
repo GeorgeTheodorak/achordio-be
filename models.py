@@ -7,6 +7,8 @@ from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, func, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
+from helpers.user_helper import generateRandomVerificationCode
+
 Base = declarative_base()
 
 load_dotenv(".env")
@@ -44,21 +46,33 @@ class User(Base):
     phone_number = Column(String, nullable=True)
     is_active = Column(Integer, nullable=False, default=1)
     is_verified = Column(Integer, nullable=False, default=0)
-
+    verification_code = Column(String, nullable=False,default=generateRandomVerificationCode())
     created_at = Column(DateTime, nullable=False, default=func.now())
     updated_at = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
 
     def fixModelFields(self, is_light_mode: bool) -> dict:
-        return {
+
+        response =  {
             "id": self.id,
             "user_name": self.user_name,
             "email": self.email,
             "user_visibility": self.user_visibility,
             "is_facebook_connected": self.facebook_id is not None,
             "is_google_connected": self.google_id is not None,
+            "is_active" : self.is_active,
+            "is_verified" : self.is_verified,
         }
 
+        if not is_light_mode:
+            binaryThumb = self.thumbnail
+            encoded_image = None
+            if binaryThumb is not None:
+                # Encode the image data as Base64
+                encoded_image = base64.b64encode(binaryThumb).decode('utf-8')
 
+                
+            response["thumbnail"] = encoded_image
+        return response
 
 class Article(Base):
     metadata = Base.metadata
@@ -131,6 +145,8 @@ class Songs(Base):
     isni_code = Column(String, nullable=True)
     name = Column(String, nullable=False)
     info_data = Column(JSON, nullable=True) # this schema will be later decided.
+
+
 
 class Charts(Base):
     metadata = Base.metadata

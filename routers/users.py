@@ -22,7 +22,7 @@ async def user_profile(request: Request, db: SessionLocal = Depends(get_db)):
     if user is None:
         return {"error": "No token provided"}
 
-    return BaseResponse(data=user.fixModelFields(False))
+    return BaseResponse(data=user.fixModelFields(is_light_mode=False))
 
 @router.post("/user-profile")
 async def user_profile(request: Request, db: SessionLocal = Depends(get_db)):
