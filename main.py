@@ -14,6 +14,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 # This runs the fast api application.
+
 app = FastAPI()
 
 app.include_router(global_data_router)
@@ -22,7 +23,6 @@ app.include_router(song_router)
 app.include_router(article_router)
 app.include_router(artists_router)
 
-app = FastAPI()
 
 # Configure CORS
 origins = [
