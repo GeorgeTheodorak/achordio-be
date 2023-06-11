@@ -53,6 +53,7 @@ def auth_token(token, db, return_user: bool) -> Union[User, bool]:
 
     user = db.query(User).filter(and_(User.email == mail, User.user_name == user_name)).first()
 
+
     if user is None:
         # invalid token
         raise CustomException(
@@ -70,7 +71,7 @@ def auth_token(token, db, return_user: bool) -> Union[User, bool]:
             )
 
     if return_user:
-        return User
+        return user
 
     return True
 

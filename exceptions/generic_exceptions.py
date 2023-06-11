@@ -12,7 +12,6 @@ class CustomException(Exception):
         self.error_message = error_message
         self.response_code = response_code
 
-
 USER_EXISTS_EXCEPTION_CODE = 1001
 USER_DOSNT_EXISTS_EXCEPTION_CODE = 1002
 USER_WRONG_CREDENTIALS_EXCEPTION_CODE = 1003

@@ -3,7 +3,7 @@ import os
 import time
 from db import check_postgres_ready
 from dotenv import load_dotenv
-from sqlalchemy import Column, Integer, String, DateTime, func, Text, LargeBinary
+from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, func, Text, LargeBinary, JSON
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
@@ -37,15 +37,27 @@ class User(Base):
     user_name = Column(String, nullable=False)
     email = Column(String, nullable=False)
     password = Column(String, nullable=False)
+    google_id = Column(String, nullable=True)
+    facebook_id = Column(String, nullable=True)
+    user_visibility = Column(Integer, nullable=True, default=1)
+    thumbnail = Column(LargeBinary, nullable=True)
+    phone_number = Column(String, nullable=True)
+    is_active = Column(Integer, nullable=False, default=1)
+    is_verified = Column(Integer, nullable=False, default=0)
+
     created_at = Column(DateTime, nullable=False, default=func.now())
     updated_at = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
 
-    def fixModelFields(self):
+    def fixModelFields(self, is_light_mode: bool) -> dict:
         return {
             "id": self.id,
             "user_name": self.user_name,
-            "email": self.email
+            "email": self.email,
+            "user_visibility": self.user_visibility,
+            "is_facebook_connected": self.facebook_id is not None,
+            "is_google_connected": self.google_id is not None,
         }
+
 
 
 class Article(Base):
@@ -62,7 +74,7 @@ class Article(Base):
     created_at = Column(DateTime, nullable=False, default=func.now())
     updated_at = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
 
-    def fixModelFieldsForResponse(self, is_light_mode: bool) -> dict:
+    def fixModelFields(self, is_light_mode: bool) -> dict:
         binaryThumb = self.thumbnail
         # Encode the image data as Base64
         encoded_image = base64.b64encode(binaryThumb).decode('utf-8')
@@ -94,9 +106,7 @@ class Artists(Base):
     created_at = Column(DateTime, nullable=False, default=func.now())
     updated_at = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
 
-
-    def fixModelFieldsForResponse(self, is_light_mode: bool) -> dict:
-
+    def fixModelFields(self, is_light_mode: bool) -> dict:
         base_response = {
             "id": self.id,
             "name": self.name,
@@ -107,3 +117,34 @@ class Artists(Base):
         }
 
         return base_response
+
+
+
+class Songs(Base):
+    metadata = Base.metadata   
+    __tablename__ = "songs"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    artist_id = Column(Integer, ForeignKey("artists.id"), nullable=False)
+    music_brainz_identifier = Column(String, index=True, nullable=True)
+    spotify_id = Column(String, index=True, nullable=True)
+    isni_code = Column(String, nullable=True)
+    name = Column(String, nullable=False)
+    info_data = Column(JSON, nullable=True) # this schema will be later decided.
+
+class Charts(Base):
+    metadata = Base.metadata
+    __tablename__ = "charts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False,index=True)
+    song_id = Column(Integer, ForeignKey("songs.id"), nullable=False,index=True)
+    chart = Column(JSON,nullable=False)
+    created_at = Column(DateTime, nullable=False, default=func.now())
+    updated_at = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
+
+    def response(self):
+        return {
+            "id": self.id,
+            "chart": self.chart
+        }

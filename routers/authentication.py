@@ -1,4 +1,6 @@
 from datetime import timedelta
+from functools import wraps
+import random
 
 from fastapi import APIRouter, Depends, status
 from fastapi import Request
@@ -20,6 +22,21 @@ router = APIRouter(prefix="/v1/api")
 security = HTTPBearer()
 
 TOKEN_MINUTES = 360000
+
+
+def validate_token(func):
+    @wraps(func)
+    async def wrapper(request: Request, db,user = None):
+        authorization_header = request.headers.get("Authorization")
+
+        if authorization_header and authorization_header.startswith("Bearer "):
+            token = authorization_header.split(" ")[1]
+            user = auth_token(token, db, False)  # Perform token validation if token is provided
+            route_token = True
+
+        return await func(request, db, user=user) 
+    
+    return wrapper
 
 
 @router.get("/protected")
@@ -51,11 +68,24 @@ async def register(form_data: authRequest, db: SessionLocal = Depends(get_db)):
             status.HTTP_403_FORBIDDEN
         )
 
+
+    user_name_to_save = form_data.email.split("@")[0]
+    tries = 0
+    while tries<10:
+        tries += 1
+
+        existing_user = db.query(User).filter(User.user_name == user_name_to_save).first()
+        if existing_user is not None:
+            user_name_to_save = f"{user_name_to_save}{random.randint(0, 9)}"
+            continue
+
+
     # Create a new User instance
     user = User(
         email=form_data.email,
-        user_name=form_data.email.split("@")[0],
+        user_name=user_name_to_save,
         password=get_hashed_password(form_data.password),
+        user_visibility=1
     )
 
     # Add the user to the session
@@ -104,3 +134,14 @@ async def login(form_data: authRequest, db: SessionLocal = Depends(get_db)):
     )
 
     return {"token": access_token}
+
+
+
+
+@router.get("/verify_code")
+@validate_token
+async def verify_code(request: Request, db: SessionLocal = Depends(get_db),user=None):
+    if not user:
+        return {
+            "status": "!good",
+        }

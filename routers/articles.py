@@ -15,9 +15,11 @@ async def getArticles(db: SessionLocal = Depends(get_db), skip: int = 0, limit: 
         .offset(skip).limit(limit) \
         .all()
 
+
+
     response_data = []
     for article in articles:
-        response_data.append(article.fixModelFieldsForResponse(False))
+        response_data.append(article.fixModelFields(False))
 
     response = BaseResponse(data=response_data)
     return response
@@ -30,7 +32,7 @@ async def getArticle(article_id: int, db: SessionLocal = Depends(get_db)):
     if article is None:
         data = {"articles": []}
     else:
-        data = {"articles": article.fixModelFieldsForResponse(is_light_mode=False)}
+        data = {"articles": article.fixModelFields(is_light_mode=False)}
 
     response = BaseResponse(data=data)
     return response
