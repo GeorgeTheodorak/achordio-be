@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+from helpers.logger import log
 
 router = APIRouter(prefix="/v1/api")
 

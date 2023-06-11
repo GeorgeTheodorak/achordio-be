@@ -9,7 +9,9 @@ from routers.authentication import router as authentication_data_router
 from routers.songs.song import song_router
 from routers.articles import router as article_router
 from routers.artists import router as artists_router
-from loguru import logger
+from helpers import logger
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 # This runs the fast api application.
 app = FastAPI()
@@ -20,8 +22,22 @@ app.include_router(song_router)
 app.include_router(article_router)
 app.include_router(artists_router)
 
-# Configure Loguru logger
-logger.add("logs/runtime.log", rotation="500 MB", compression="zip", serialize=True)
+app = FastAPI()
+
+# Configure CORS
+origins = [
+    "http://localhost",
+    "http://localhost:3000",  # Assuming your React app runs on this port
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 @app.exception_handler(CustomException)
 async def custom_exception_handler(request, exc):
