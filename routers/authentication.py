@@ -10,30 +10,27 @@ from auth.hash import auth_token
 from auth.hash import get_hashed_password
 from auth.hash import verify_password, generate_jwt_data_from_user_model
 from auth.jwt_generation import create_access_token
-from auth.user_wrapper import validate_token
-from exceptions.generic_exceptions import USER_EXISTS_EXCEPTION_CODE, CustomException, USER_DOSNT_EXISTS_EXCEPTION_CODE, \
-    USER_WRONG_CREDENTIALS_EXCEPTION_CODE
+from auth.user_validate import validate_user
+from exceptions.generic_exceptions import USER_EXISTS_EXCEPTION_CODE, CustomException, \
+    USER_DOES_NOT_EXISTS_EXCEPTION_CODE, \
+    USER_WRONG_CREDENTIALS_EXCEPTION_CODE, USER_EXPIRED_TOKEN, USER_ALREADY_VERIFIED
 from models import SessionLocal
 from models import User
 from models import get_db
 from base_models.responses.auth_response import authResponse
-from base_models.requests.auth_request import authRequest
+from base_models.requests.auth_request import authRequest, validateToken
 
 router = APIRouter(prefix="/v1/api")
 security = HTTPBearer()
 
 TOKEN_MINUTES = 360000
 
-@router.get("/protected")
-async def protected_route(request: Request, db: SessionLocal = Depends(get_db)):
-    authorization_header = request.headers.get("Authorization")
 
-    if authorization_header and authorization_header.startswith("Bearer "):
-        token = authorization_header.split(" ")[1]
-        auth_token(token, db, False)  # Perform token validation if token is provided
-        route_token = True
-    else:
-        token = None
+@router.get("/protected")
+@validate_token
+async def protected_route(request: Request, db: SessionLocal = Depends(get_db), User=None):
+    route_token = True
+    if User is None:
         route_token = False
 
     return {
@@ -53,17 +50,15 @@ async def register(form_data: authRequest, db: SessionLocal = Depends(get_db)):
             status.HTTP_403_FORBIDDEN
         )
 
-
     user_name_to_save = form_data.email.split("@")[0]
     tries = 0
-    while tries<10:
+    while tries < 10:
         tries += 1
 
         existing_user = db.query(User).filter(User.user_name == user_name_to_save).first()
         if existing_user is not None:
             user_name_to_save = f"{user_name_to_save}{random.randint(0, 9)}"
             continue
-
 
     # Create a new User instance
     user = User(
@@ -99,7 +94,7 @@ async def login(form_data: authRequest, db: SessionLocal = Depends(get_db)):
 
     if existing_user is None:
         raise CustomException(
-            USER_DOSNT_EXISTS_EXCEPTION_CODE,
+            USER_DOES_NOT_EXISTS_EXCEPTION_CODE,
             "User not found",
             status.HTTP_403_FORBIDDEN
         )
@@ -120,17 +115,39 @@ async def login(form_data: authRequest, db: SessionLocal = Depends(get_db)):
 
     return {"token": access_token}
 
-
-
-
 @router.post("/verify_code")
-@validate_token
-async def verify_code(request: Request, db: SessionLocal = Depends(get_db),user=None):
+async def verify_code(form_data: validateToken, request: Request, db: SessionLocal = Depends(get_db),
+                      user=Depends(validate_user)):
     if not user:
-        return {
-            "status": "!good",
-        }
-    
-    return {'status':"good"}
+        raise CustomException(
+            USER_EXPIRED_TOKEN,
+            "INVALID TOKEN",
+            status.HTTP_403_FORBIDDEN
+        )
+    if user.is_verified:
+        raise CustomException(
+            USER_ALREADY_VERIFIED,
+            "ALREADY VERIFIED",
+            status.HTTP_403_FORBIDDEN
+        )
 
+    verificationTokenException = CustomException(
+        USER_EXPIRED_TOKEN,
+        "INVALID TOKEN",
+        status.HTTP_403_FORBIDDEN
+    )
 
+    token = form_data.token
+
+    if not token:
+        raise verificationTokenException
+
+    if user.verification_token != token:
+        raise verificationTokenException
+
+    user.is_verified = True
+
+    db.add(user)
+    db.commit()
+
+    return {'status': "good"}
