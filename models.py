@@ -107,3 +107,23 @@ class Artists(Base):
         }
 
         return base_response
+
+
+class UserProfiles(Base):
+    metadata = Base.metadata
+    __tablename__ = "user_profiles"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, index=True)
+    avatar = Column(String, nullable=True)
+    created_at = Column(DateTime, nullable=False, default=func.now())
+    updated_at = Column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
+
+    def fixModelFieldsForResponse(self, is_light_mode: bool) -> dict:
+        base_response = {
+            "id": self.id,
+            "user_id": self.user_id,
+            "avatar": self.avatar
+        }
+
+        return base_response

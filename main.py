@@ -9,6 +9,7 @@ from routers.authentication import router as authentication_data_router
 from routers.songs.song import song_router
 from routers.articles import router as article_router
 from routers.artists import router as artists_router
+from routers.user_profiles import router as user_profiles
 from helpers import logger
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -22,6 +23,7 @@ app.include_router(authentication_data_router)
 app.include_router(song_router)
 app.include_router(article_router)
 app.include_router(artists_router)
+app.include_router(user_profiles)
 
 
 # Configure CORS

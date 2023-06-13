@@ -103,4 +103,4 @@ async def login(form_data: authRequest, db: SessionLocal = Depends(get_db)):
         data=generate_jwt_data_from_user_model(existing_user), expires_delta=access_token_expires
     )
 
-    return {"token": access_token}
+    return {"token": access_token, "user_profile_id": 12}

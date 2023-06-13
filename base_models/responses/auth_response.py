@@ -6,3 +6,4 @@ from starlette.responses import JSONResponse
 
 class authResponse(BaseModel):
     token: str
+    user_profile_id: int
