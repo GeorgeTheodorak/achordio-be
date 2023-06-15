@@ -27,8 +27,8 @@ TOKEN_MINUTES = 360000
 
 
 @router.get("/protected")
-@validate_token
 async def protected_route(request: Request, db: SessionLocal = Depends(get_db), User=None):
+    user = validate_user(request, db, None, False)
     route_token = True
     if User is None:
         route_token = False
@@ -114,6 +114,7 @@ async def login(form_data: authRequest, db: SessionLocal = Depends(get_db)):
     )
 
     return {"token": access_token}
+
 
 @router.post("/verify_code")
 async def verify_code(form_data: validateToken, request: Request, db: SessionLocal = Depends(get_db),
