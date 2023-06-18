@@ -7,7 +7,7 @@ from starlette import status
 from auth.hash import auth_token
 from auth.user_validate import validate_user
 from base_models.requests.auth_request import validateToken
-from base_models.requests.user import userUpdateThumbnail
+from base_models.requests.user import userUpdateAvatar
 
 from base_models.responses.base_response import BaseResponse
 from exceptions.generic_exceptions import CustomException, USER_ALREADY_VERIFIED
@@ -32,12 +32,12 @@ async def user_profile(request: Request, db: SessionLocal = Depends(get_db), use
         user = auth_token(token, db, True)  # Perform token validation if token is provided
 
 
-@router.post("/user-profile/thumbnail")
-async def user_profile(form_data: userUpdateThumbnail,
+@router.post("/user-profile/avatar")
+async def user_profile(form_data: userUpdateAvatar,
                        request: Request,
                        db: SessionLocal = Depends(get_db),
                        user=Depends(validate_user)):
-    pass
-    image_source = form_data.thumbnail
 
+    image_source = form_data.avatar
     image_source = downscale_image(image_source, (256, 256))
+

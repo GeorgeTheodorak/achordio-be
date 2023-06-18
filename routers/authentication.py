@@ -102,7 +102,7 @@ async def login(form_data: authRequest, db: SessionLocal = Depends(get_db)):
     if not verify_password(form_data.password, existing_user.password):
         raise CustomException(
             USER_WRONG_CREDENTIALS_EXCEPTION_CODE,
-            "What password is this brother?",
+            "Wrong username or password",
             status.HTTP_403_FORBIDDEN
         )
 

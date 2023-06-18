@@ -42,7 +42,7 @@ class User(Base):
     google_id = Column(String, nullable=True)
     facebook_id = Column(String, nullable=True)
     user_visibility = Column(Integer, nullable=True, default=1)
-    thumbnail = Column(LargeBinary, nullable=True)
+    avatar = Column(LargeBinary, nullable=True)
     phone_number = Column(String, nullable=True)
     is_active = Column(Integer, nullable=False, default=1)
     is_verified = Column(Integer, nullable=False, default=0)
@@ -64,13 +64,13 @@ class User(Base):
         }
 
         if not is_light_mode:
-            binaryThumb = self.thumbnail
+            avatarBinary = self.avatar
             encoded_image = None
-            if binaryThumb is not None:
+            if avatarBinary is not None:
                 # Encode the image data as Base64
-                encoded_image = base64.b64encode(binaryThumb).decode('utf-8')
+                encoded_image = base64.b64encode(avatarBinary).decode('utf-8')
 
-            response["thumbnail"] = encoded_image
+            response["avatar"] = encoded_image
         return response
 
 

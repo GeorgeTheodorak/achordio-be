@@ -1,5 +1,5 @@
 from pydantic import BaseModel
 
 
-class userUpdateThumbnail(BaseModel):
-    thumbnail: bytes
+class userUpdateAvatar(BaseModel):
+    avatar: bytes
