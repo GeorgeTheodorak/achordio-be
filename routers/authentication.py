@@ -87,7 +87,7 @@ async def register(form_data: authRequest, db: SessionLocal = Depends(get_db)):
     }
 
 
-@router.post('/login', summary="Create access and refresh tokens for models.py",
+@router.post('/user-login', summary="Create access and refresh tokens for models.py",
              response_model=authResponse)
 async def login(form_data: authRequest, db: SessionLocal = Depends(get_db)):
     existing_user = db.query(User).filter(User.email == form_data.email).first()
@@ -116,7 +116,7 @@ async def login(form_data: authRequest, db: SessionLocal = Depends(get_db)):
     return {"token": access_token}
 
 
-@router.post("/verify_code")
+@router.post("/user-verify_code")
 async def verify_code(form_data: validateToken, request: Request, db: SessionLocal = Depends(get_db),
                       user=Depends(validate_user)):
     if not user:
@@ -125,6 +125,7 @@ async def verify_code(form_data: validateToken, request: Request, db: SessionLoc
             "INVALID TOKEN",
             status.HTTP_403_FORBIDDEN
         )
+
     if user.is_verified:
         raise CustomException(
             USER_ALREADY_VERIFIED,

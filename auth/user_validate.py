@@ -14,7 +14,7 @@ def validate_user(request: Request, db: SessionLocal = Depends(get_db), crashIfN
 
     if authorization_header and authorization_header.startswith("Bearer "):
         token = authorization_header.split(" ")[1]
-        user = auth_token(token, db, False)  # Perform token validation if token is provided
+        user = auth_token(token, db, True)  # Perform token validation if token is provided
 
         if user is None and crashIfNotExists:
             raise CustomException(
