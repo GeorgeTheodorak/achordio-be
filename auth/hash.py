@@ -1,4 +1,5 @@
 import datetime
+import secrets
 import time
 from typing import Type, Union
 
@@ -80,7 +81,8 @@ def generate_jwt_data_from_user_model(User: User) -> dict:
     return {
         "sub": User.user_name,
         "pw": User.password,
-        "mail": User.email
+        "mail": User.email,
+        "meran": secrets.token_hex(32)
     }
 
 
